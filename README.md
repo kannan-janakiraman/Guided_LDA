@@ -10,8 +10,10 @@ In this project, the class GMC_LDA in the gmc_lda.py can be used to perform the 
 - get_best_model_for_class - performs grid search and returns C_v scores for given class idx 
 - get_best_LDA_models - builds LDA models for given hyper parameters 
 
+You can refer to GuidedLDA.ipynb for example usage. The tweets used for the example is stored in filtered_tweets.csv
 
-Sample usage of the class is given below 
+
+Sample usage of the class is given below for tweets sent to AppleSupport. 
 
 ```
 import gmc_lda
