@@ -77,7 +77,18 @@ class GMC_LDA:
         return " ".join(result)
 
     def generate_class_dataframes(self, noise_words, class_words, class_names):
-        
+        '''
+        Method to generate class level dataframes, given the noise words, class words and class names. 
+
+        Input  
+        noise_words : list of noise words used for filtering 
+        class_words : list of class words used for partitioning 
+        class_names : list of class names for the classes 
+
+        Processing : partitions the dataframe by class words and stores it in the class_df_array instance variable. 
+
+        Returns : none 
+        '''
         self.noise_words = noise_words
         self.class_words = class_words
         self.class_names = class_names
@@ -95,14 +106,23 @@ class GMC_LDA:
         return 
     
     def print_partition_info(self):
+        '''
+        prints the parition info
+        '''
         for i, df in enumerate(self.class_df_array):
             print(self.class_names[i], df.shape)
     
     def clean_class_tweets (self, df, noise_words = []):
+        '''
+        internal method to preprocess the tweets
+        '''
         df[self.clean_col] = df[self.raw_col].apply(self.pre_process, args=(noise_words,))
         return df 
 
     def vectorize_class_tweets(self, df):
+        '''
+        internal method to generate the corpus and the dictionary 
+        '''
         tweets = df[self.clean_col]
         tweets_tok = tweets.apply(lambda x: x.split())
         tweets_dictionary = Dictionary(tweets_tok)
@@ -111,6 +131,9 @@ class GMC_LDA:
         return tweets_dictionary, tweets_corpus 
 
     def run_class_LDA_model(self, df, corpus, dictionary, t, a, b):
+        '''
+        internal method to run the LDA model for the given hyperparameters and return the coherence score 
+        '''
         lda_model = LdaMulticore(corpus=corpus,
                                 id2word=dictionary,
                                 num_topics=t,
@@ -128,19 +151,10 @@ class GMC_LDA:
                                             dictionary=dictionary, coherence='c_v')
         return coherence_model_lda.get_coherence()
     
-    def get_lda_model_for_best_config(self, corpus, dictionary ):
-        lda_model = LdaMulticore(corpus=corpus,
-                                id2word=dictionary,
-                                num_topics=t,
-                                passes=10,
-                                alpha=a, 
-                                eta=b,
-                                chunksize=100,
-                                per_word_topics=True, 
-                                random_state=42
-                                ) 
-
     def get_best_class_model(self, df, corpus, dictionary, topic_only):
+        '''
+        internal method to perform grid search 
+        '''
 
         # Topics range
         min_topics = 2
@@ -198,6 +212,11 @@ class GMC_LDA:
         return results_df
     
     def get_best_model(self, topic_only = True):
+        '''
+        Mehod to determine the best model for all the classes for all topics
+
+        Returns the dataframe of coherence values 
+        '''
         results = []
         for idx, df in enumerate(self.class_df_array):
             cleaned_df = self.clean_class_tweets(df, self.noise_words)
@@ -209,18 +228,28 @@ class GMC_LDA:
             results.append(class_result)
         return results
     
-    def get_best_model_for_topic(self, topic_idx, topic_only = True):
-    
-        cleaned_df = self.clean_class_tweets(self.class_df_array[topic_idx], self.noise_words)
+    def get_best_model_for_class(self, class_idx, topic_only = True):
+        '''
+        Mehod to determine the best model for all the classes for given topic
+
+        Returns the dataframe of coherence values 
+        '''
+        cleaned_df = self.clean_class_tweets(self.class_df_array[class_idx], self.noise_words)
         dictionary, corpus = self.vectorize_class_tweets(cleaned_df)
         class_result = self.get_best_class_model(cleaned_df, corpus, dictionary, topic_only)
         # self.best_class_model_configs.append(class_result)
-        print(self.class_names[topic_idx])
+        print(self.class_names[class_idx])
         print(class_result.sort_values(by='Coherence', ascending=False).head())
         # results.append(class_result)
         return
     
     def get_best_LDA_models(self, params): 
+        '''
+        Mehod to determine the build LDA model for hyperparameters provided in the params.  
+
+        Prints the topic words for all the topics. Stores the best LDA models in the 
+        best_LDA_models instance variable. 
+        '''
 
         for idx, df in enumerate(self.class_df_array):
             cleaned_df = self.clean_class_tweets(self.class_df_array[idx], self.noise_words)
