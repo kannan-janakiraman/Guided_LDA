@@ -11,4 +11,31 @@ In this project, the class GMC_LDA in the gmc_lda.py can be used to perform the 
 - get_best_LDA_models - builds LDA models for given hyper parameters 
 
 
+Sample usage of the class is given below 
 
+```
+import gmc_lda
+
+# create gmc_model object with dataframe 
+gmc_model = GMC_LDA(df = tweets_filtered_df, raw_col = 'text_x')
+
+# partition the dataframe to multiple classes 
+noise_words = ['hello', 'hey', 'apple','hi', 'fuck', 'shit', 'help','issu', 'problem', 'work','batteri','time', 'work' ,'thanks', 'letter', 'glitch', 'question', 'mark', 'turn', 'need','help','problem','issu', 'shit'] 
+class_common_words = ['appl', 'battery', 'update', 'music']
+class_words = [ ['iphone', 'phone', 'iphonex','youtube', 'mail','facebook','twitter'],
+                ['ipad', 'tablet'],
+                ['mac', 'macbook', 'sierra', 'macos', 'osx', 'keyboard'], 
+                ['ipod', 'itunes', 'music','podcast'],
+                ['watch', 'watchos', 'series'],
+                ['icloud', 'drive', 'pages', 'numbers', 'keychain', 'photos', 'apple id'], 
+                []]
+class_names = ['iphone', 'ipad', 'mac','ipod', 'watch', 'icloud', 'others']
+
+gmc_model.generate_class_dataframes(noise_words=noise_words,
+                                    class_words=class_words,
+                                    class_names=class_names)
+gmc_model.print_partition_info()
+
+# perform class level LDA 
+gmc_model.get_best_model(topic_only=False)
+```
